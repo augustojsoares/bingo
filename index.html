@@ -58,15 +58,16 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: clamp(0.9rem, 2vw, 1.8rem);
+            font-size: clamp(0.7rem, 1.2vw, 1.2rem);
             font-weight: 600;
             cursor: pointer;
             user-select: none;
             transition: all 0.2s ease;
-            padding: 0.5rem;
+            padding: 0.3rem;
             text-align: center;
-            word-wrap: break-word;
-            hyphens: auto;
+            word-break: keep-all;
+            overflow-wrap: normal;
+            line-height: 1.2;
         }
 
         .cell.filled {
@@ -238,11 +239,29 @@
         const COLS = 8;
         const FILLED_PER_ROW = 5;
         const PLACEHOLDER_CONTENT = [
-            "one", "two", "three", "four", "five", "six", "seven", "eight", "nine", "ten",
-            "eleven", "twelve", "thirteen", "fourteen", "fifteen", "sixteen", "seventeen",
-            "eighteen", "nineteen", "twenty", "twenty-one", "twenty-two", "twenty-three",
-            "twenty-four", "twenty-five", "twenty-six", "twenty-seven", "twenty-eight",
-            "twenty-nine", "thirty"
+            "Só falta QA",
+            "É preciso cuidado com os edge cases!!!",
+            "É preciso testar",
+            "Tudo direitinho",
+            "Pendo",
+            "Tenho que ir comer",
+            "Não posso, tenho treino/ginásio",
+            "Já fui treinar às 6h30",
+            "Já trabalhei na Farfetch",
+            "Na Farfetch é que isso era bem feito",
+            "A minha namorada trabalha na Farfetch",
+            "Tenho um amigo ",
+            "Dynamic forms estão impecáveis",
+            "Se precisares conheço um gajo",
+            "Isso tem que se pedir a X",
+            "Restaurante / bar / viagem a que fui é incrível, tens que experimentar",
+            "Na Maia tens um lugar melhor",
+            "A minha família tem não sei o quê",
+            "Foi o meu avô que construiu a Maia",
+            "Estou à espera que alguém faça Y",
+            "Estive a fazer os testes de integração",
+            "Então, não consegues arranjar uma horinha por dia para treinar?",
+            "Quando é que vêem para o Padle?"
         ];
 
         const PASTEL_COLORS = [
