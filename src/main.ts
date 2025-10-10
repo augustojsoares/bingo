@@ -1,4 +1,4 @@
-import { init, id, tx as txBuilder } from "@instantdb/core";
+import { init, id } from "@instantdb/core";
 import "./styles.css";
 
 // Initialize InstantDB
@@ -135,12 +135,16 @@ const clearBtn = document.getElementById("clearBtn")!;
 const newSessionBtn = document.getElementById("newSessionBtn")!;
 const leaveGameBtn = document.getElementById("leaveGameBtn")!;
 const victoryOverlay = document.getElementById("victoryOverlay")!;
-const confettiCanvas = document.getElementById("confettiCanvas") as HTMLCanvasElement;
+const confettiCanvas = document.getElementById(
+  "confettiCanvas"
+) as HTMLCanvasElement;
 const ctx = confettiCanvas.getContext("2d")!;
 const gameList = document.getElementById("gameList")!;
 const createGameBtn = document.getElementById("createGameBtn")!;
 const newGameName = document.getElementById("newGameName") as HTMLInputElement;
-const usernameInput = document.getElementById("usernameInput") as HTMLInputElement;
+const usernameInput = document.getElementById(
+  "usernameInput"
+) as HTMLInputElement;
 const submitUsername = document.getElementById("submitUsername")!;
 const playersList = document.getElementById("playersList")!;
 const victoryTitle = document.getElementById("victoryTitle")!;
@@ -153,7 +157,8 @@ console.log("DOM elements:", { createGameBtn, newGameName, gameList });
 // Initialize audio context on first user interaction
 function initAudioContext() {
   if (!audioContext) {
-    audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+    audioContext = new (window.AudioContext ||
+      (window as any).webkitAudioContext)();
   }
 }
 
@@ -225,11 +230,11 @@ db.subscribeQuery({ games: {}, players: {} }, (resp) => {
 
   // Add player counts to each game and filter out empty games
   const gamesWithCounts = games
-    .map(game => ({
+    .map((game) => ({
       ...game,
-      playerCount: allPlayers.filter(p => p.gameId === game.id).length
+      playerCount: allPlayers.filter((p) => p.gameId === game.id).length,
     }))
-    .filter(game => game.playerCount > 0); // Only show games with players
+    .filter((game) => game.playerCount > 0); // Only show games with players
 
   renderGamesList(gamesWithCounts);
 });
@@ -364,7 +369,7 @@ function showGameScreen() {
   }
 
   // Subscribe to current game and its players
-  const { unsubscribe } = db.subscribeQuery(
+  const unsubscribe = db.subscribeQuery(
     {
       games: {
         $: {
@@ -550,7 +555,9 @@ function checkCompletions(): {
   }
 
   // Check if all cells are selected
-  const allFilledCells = cardData.flat().filter((cell) => cell.type === "filled");
+  const allFilledCells = cardData
+    .flat()
+    .filter((cell) => cell.type === "filled");
   const allCellsSelected =
     allFilledCells.length > 0 && allFilledCells.every((cell) => cell.selected);
 
@@ -703,7 +710,7 @@ function playLossSound() {
   if (!audioContext) return;
 
   // Descending sad notes
-  const notes = [523.25, 466.16, 415.30, 392.00]; // C5, A#4, G#4, G4
+  const notes = [523.25, 466.16, 415.3, 392.0]; // C5, A#4, G#4, G4
   const duration = 0.25;
 
   notes.forEach((freq, index) => {
@@ -885,9 +892,10 @@ async function startNewSession() {
   console.log(`Found ${players.length} players to reset`);
 
   // Generate new cards for all players first
-  const playerUpdates = players.map(player => {
+  const playerUpdates = players.map((player) => {
     const newCard = generateCard();
-    const newColor = PASTEL_COLORS[Math.floor(Math.random() * PASTEL_COLORS.length)];
+    const newColor =
+      PASTEL_COLORS[Math.floor(Math.random() * PASTEL_COLORS.length)];
 
     console.log(`Generated new card for player: ${player.username}`);
 
@@ -899,7 +907,7 @@ async function startNewSession() {
         hasCompletedCard: false,
         cardData: newCard,
         emptyColor: newColor,
-      }
+      },
     };
   });
 
@@ -926,13 +934,18 @@ leaveGameBtn.addEventListener("click", async () => {
     const gameIdToCheck = currentGameId;
     const playerIdToDelete = currentPlayerId;
 
-    console.log("Leaving game:", gameIdToCheck, "Deleting player:", playerIdToDelete);
+    console.log(
+      "Leaving game:",
+      gameIdToCheck,
+      "Deleting player:",
+      playerIdToDelete
+    );
 
     // Delete the player
     await db.transact(db.tx.players[playerIdToDelete!].delete());
 
     // Wait a bit for the delete to propagate
-    await new Promise(resolve => setTimeout(resolve, 100));
+    await new Promise((resolve) => setTimeout(resolve, 100));
 
     // Check if there are any remaining players in the game
     const remainingPlayers = await new Promise<Player[]>((resolve, reject) => {
@@ -956,7 +969,11 @@ leaveGameBtn.addEventListener("click", async () => {
       );
     });
 
-    console.log("Remaining players in game:", remainingPlayers.length, remainingPlayers);
+    console.log(
+      "Remaining players in game:",
+      remainingPlayers.length,
+      remainingPlayers
+    );
 
     // If no players left, delete the game
     if (remainingPlayers.length === 0) {
@@ -975,13 +992,18 @@ victoryLeaveGameBtn.addEventListener("click", async () => {
     const gameIdToCheck = currentGameId;
     const playerIdToDelete = currentPlayerId;
 
-    console.log("Leaving game:", gameIdToCheck, "Deleting player:", playerIdToDelete);
+    console.log(
+      "Leaving game:",
+      gameIdToCheck,
+      "Deleting player:",
+      playerIdToDelete
+    );
 
     // Delete the player
     await db.transact(db.tx.players[playerIdToDelete!].delete());
 
     // Wait a bit for the delete to propagate
-    await new Promise(resolve => setTimeout(resolve, 100));
+    await new Promise((resolve) => setTimeout(resolve, 100));
 
     // Check if there are any remaining players in the game
     const remainingPlayers = await new Promise<Player[]>((resolve, reject) => {
@@ -1005,7 +1027,11 @@ victoryLeaveGameBtn.addEventListener("click", async () => {
       );
     });
 
-    console.log("Remaining players in game:", remainingPlayers.length, remainingPlayers);
+    console.log(
+      "Remaining players in game:",
+      remainingPlayers.length,
+      remainingPlayers
+    );
 
     // If no players left, delete the game
     if (remainingPlayers.length === 0) {
@@ -1022,7 +1048,10 @@ victoryLeaveGameBtn.addEventListener("click", async () => {
 async function cleanupEmptyGames() {
   try {
     // Fetch games and players using subscribeQuery with immediate unsubscribe
-    const { games, allPlayers } = await new Promise<{ games: Game[], allPlayers: Player[] }>((resolve, reject) => {
+    const { games, allPlayers } = await new Promise<{
+      games: Game[];
+      allPlayers: Player[];
+    }>((resolve, reject) => {
       const unsubscribe = db.subscribeQuery(
         { games: {}, players: {} },
         (resp) => {
@@ -1039,8 +1068,8 @@ async function cleanupEmptyGames() {
     });
 
     // Find games with no players
-    const emptyGames = games.filter(game => {
-      const playerCount = allPlayers.filter(p => p.gameId === game.id).length;
+    const emptyGames = games.filter((game) => {
+      const playerCount = allPlayers.filter((p) => p.gameId === game.id).length;
       return playerCount === 0;
     });
 

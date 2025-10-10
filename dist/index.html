@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Bingo do André</title>
+    <link rel="icon" type="image/png" href="/assets/icon-Dobre0Z2.png" />
+    <script type="module" crossorigin src="/assets/index-DMuh_Oxq.js"></script>
+    <link rel="stylesheet" crossorigin href="/assets/index-FLxcNzUs.css">
+  </head>
+  <body>
+    <h1>Bingo do André</h1>
+
+    <!-- Landing Screen -->
+    <div class="screen active" id="landingScreen">
+      <div class="landing-container">
+        <div class="create-game-section">
+          <h2>Create New Game</h2>
+          <input
+            type="text"
+            id="newGameName"
+            class="game-input"
+            placeholder="Enter game name..."
+          />
+          <button class="btn-success" id="createGameBtn" style="width: 100%">
+            Create Game
+          </button>
+        </div>
+
+        <div class="join-game-section">
+          <h2>Join Existing Game</h2>
+          <div class="game-list" id="gameList">
+            <p style="text-align: center; color: #7f8c8d">Loading games...</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Game Screen -->
+    <div class="screen" id="gameScreen">
+      <div class="game-container">
+        <div class="game-main">
+          <div class="card-wrapper">
+            <div class="grid" id="bingoGrid"></div>
+          </div>
+
+          <div class="buttons">
+            <button id="clearBtn">Clear</button>
+            <button id="newSessionBtn">New Session</button>
+            <button id="leaveGameBtn">Leave Game</button>
+          </div>
+        </div>
+
+        <div class="side-panel">
+          <h3>Players</h3>
+          <ul class="players-list" id="playersList"></ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- Username Modal -->
+    <div class="modal" id="usernameModal">
+      <div class="modal-content">
+        <h3>Enter Your Name</h3>
+        <input
+          type="text"
+          id="usernameInput"
+          class="game-input"
+          placeholder="Your name..."
+        />
+        <button class="btn-primary" id="submitUsername" style="width: 100%">
+          Join Game
+        </button>
+      </div>
+    </div>
+
+    <!-- Victory Overlay -->
+    <canvas id="confettiCanvas"></canvas>
+    <div class="victory-overlay" id="victoryOverlay">
+      <div class="victory-message">
+        <h2 id="victoryTitle">🎉 BINGO! 🎉</h2>
+        <p id="victoryText">Parabéns! Você completou o cartão!</p>
+        <div class="victory-buttons">
+          <button id="victoryNewSessionBtn" class="btn-success">New Session</button>
+          <button id="victoryLeaveGameBtn" class="btn-danger">Leave Game</button>
+        </div>
+      </div>
+    </div>
+
+  </body>
+</html>
