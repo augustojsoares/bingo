@@ -1,0 +1,1235 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Bingo do André</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 1.5rem 1rem;
+        color: #333;
+      }
+
+      h1 {
+        color: #fff;
+        font-size: clamp(2rem, 5vw, 3.5rem);
+        margin-bottom: 1.5rem;
+        text-align: center;
+        text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+      }
+
+      .screen {
+        display: none;
+      }
+
+      .screen.active {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        width: 100%;
+      }
+
+      /* Landing page styles */
+      .landing-container {
+        background: white;
+        padding: 2rem;
+        border-radius: 12px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        max-width: 600px;
+        width: 100%;
+      }
+
+      .landing-container h2 {
+        margin-bottom: 1.5rem;
+        color: #2c3e50;
+        text-align: center;
+      }
+
+      .create-game-section {
+        margin-bottom: 2rem;
+        padding-bottom: 2rem;
+        border-bottom: 2px solid #ecf0f1;
+      }
+
+      .game-list {
+        max-height: 400px;
+        overflow-y: auto;
+      }
+
+      .game-item {
+        background: #f8f9fa;
+        padding: 1rem;
+        margin-bottom: 0.5rem;
+        border-radius: 8px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        transition: background 0.2s;
+      }
+
+      .game-item:hover {
+        background: #e9ecef;
+      }
+
+      .game-info {
+        flex: 1;
+      }
+
+      .game-name {
+        font-weight: 600;
+        color: #2c3e50;
+        margin-bottom: 0.25rem;
+      }
+
+      .game-players {
+        font-size: 0.9rem;
+        color: #7f8c8d;
+      }
+
+      .game-input {
+        width: 100%;
+        padding: 0.75rem;
+        font-size: 1rem;
+        border: 2px solid #ddd;
+        border-radius: 8px;
+        margin-bottom: 1rem;
+      }
+
+      .game-input:focus {
+        outline: none;
+        border-color: #3498db;
+      }
+
+      /* Modal styles */
+      .modal {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.85);
+        display: none;
+        align-items: center;
+        justify-content: center;
+        z-index: 2000;
+        animation: fadeIn 0.3s ease;
+      }
+
+      .modal.show {
+        display: flex;
+      }
+
+      .modal-content {
+        background: white;
+        padding: 2rem;
+        border-radius: 12px;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+        max-width: 400px;
+        width: 90%;
+      }
+
+      .modal-content h3 {
+        margin-bottom: 1rem;
+        color: #2c3e50;
+      }
+
+      /* Game screen styles */
+      .game-container {
+        display: flex;
+        gap: 1.5rem;
+        width: 100%;
+        max-width: 1600px;
+        align-items: flex-start;
+      }
+
+      .game-main {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+      }
+
+      .card-wrapper {
+        background: white;
+        padding: 1.5rem;
+        border: 2px solid #000;
+        border-radius: 12px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        margin-bottom: 1.5rem;
+        display: inline-block;
+      }
+
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(8, 1fr);
+        grid-template-rows: repeat(3, 1fr);
+        gap: 0;
+        border: 1px solid #000;
+        background: #000;
+        aspect-ratio: 8 / 3;
+        width: min(calc(95vw - 3rem - 4px), 1100px);
+        height: min(calc(70vh - 3rem - 4px), calc(1100px * 3 / 8));
+      }
+
+      .cell {
+        border: 1px solid #000;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: clamp(0.7rem, 1.2vw, 1.2rem);
+        font-weight: 600;
+        cursor: pointer;
+        user-select: none;
+        transition: all 0.2s ease;
+        padding: 0.3rem;
+        text-align: center;
+        word-break: keep-all;
+        overflow-wrap: normal;
+        line-height: 1.2;
+      }
+
+      .cell.filled {
+        background: white;
+      }
+
+      .cell.filled:hover {
+        background: #f0f0f0;
+        transform: scale(0.95);
+      }
+
+      .cell.filled.selected {
+        background: linear-gradient(135deg, #ffd700 0%, #ffed4e 100%);
+        box-shadow: inset 0 0 10px rgba(255, 215, 0, 0.5);
+      }
+
+      .cell.empty {
+        cursor: default;
+        background: var(--cell-color);
+      }
+
+      /* Side panel styles */
+      .side-panel {
+        background: white;
+        padding: 1.5rem;
+        border-radius: 12px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        min-width: 280px;
+        max-width: 320px;
+      }
+
+      .side-panel h3 {
+        margin-bottom: 1rem;
+        color: #2c3e50;
+        border-bottom: 2px solid #ecf0f1;
+        padding-bottom: 0.5rem;
+      }
+
+      .players-list {
+        list-style: none;
+      }
+
+      .player-item {
+        padding: 0.75rem;
+        margin-bottom: 0.5rem;
+        background: #f8f9fa;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+      }
+
+      .player-item.completed {
+        background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%);
+      }
+
+      .player-name {
+        font-weight: 600;
+        color: #2c3e50;
+        flex: 1;
+      }
+
+      .player-stats {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+      }
+
+      .player-progress {
+        font-size: 0.9rem;
+        color: #7f8c8d;
+      }
+
+      .bingo-icon {
+        font-size: 1.2rem;
+      }
+
+      .buttons {
+        display: flex;
+        gap: 1rem;
+        justify-content: center;
+        flex-wrap: wrap;
+      }
+
+      button {
+        padding: 1rem 2.5rem;
+        font-size: 1.3rem;
+        font-weight: 600;
+        border: 2px solid #000;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+      }
+
+      .btn-primary {
+        background: #3498db;
+        color: white;
+      }
+
+      .btn-primary:hover {
+        background: #2980b9;
+        transform: translateY(-2px);
+        box-shadow: 0 6px 8px rgba(0, 0, 0, 0.3);
+      }
+
+      .btn-success {
+        background: #2ecc71;
+        color: white;
+      }
+
+      .btn-success:hover {
+        background: #27ae60;
+        transform: translateY(-2px);
+        box-shadow: 0 6px 8px rgba(0, 0, 0, 0.3);
+      }
+
+      #clearBtn {
+        background: #e74c3c;
+        color: white;
+      }
+
+      #clearBtn:hover {
+        background: #c0392b;
+        transform: translateY(-2px);
+        box-shadow: 0 6px 8px rgba(0, 0, 0, 0.3);
+      }
+
+      #newSessionBtn {
+        background: #2ecc71;
+        color: white;
+        position: relative;
+        z-index: 1001;
+      }
+
+      #newSessionBtn:hover {
+        background: #27ae60;
+        transform: translateY(-2px);
+        box-shadow: 0 6px 8px rgba(0, 0, 0, 0.3);
+      }
+
+      #leaveGameBtn {
+        background: #95a5a6;
+        color: white;
+      }
+
+      #leaveGameBtn:hover {
+        background: #7f8c8d;
+        transform: translateY(-2px);
+        box-shadow: 0 6px 8px rgba(0, 0, 0, 0.3);
+      }
+
+      button:active {
+        transform: translateY(0);
+      }
+
+      .victory-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.85);
+        display: none;
+        align-items: center;
+        justify-content: center;
+        z-index: 1000;
+        animation: fadeIn 0.5s ease;
+      }
+
+      .victory-overlay.show {
+        display: flex;
+      }
+
+      .victory-message {
+        background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        padding: 3rem;
+        border-radius: 20px;
+        text-align: center;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+        animation: bounceIn 0.6s ease;
+      }
+
+      .victory-message h2 {
+        font-size: clamp(2rem, 6vw, 4rem);
+        color: white;
+        text-shadow: 3px 3px 6px rgba(0, 0, 0, 0.3);
+        margin-bottom: 1rem;
+      }
+
+      .victory-message p {
+        font-size: clamp(1rem, 3vw, 1.5rem);
+        color: white;
+      }
+
+      #confettiCanvas {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        pointer-events: none;
+        z-index: 999;
+      }
+
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+        }
+        to {
+          opacity: 1;
+        }
+      }
+
+      @keyframes bounceIn {
+        0% {
+          transform: scale(0.3);
+          opacity: 0;
+        }
+        50% {
+          transform: scale(1.05);
+        }
+        70% {
+          transform: scale(0.9);
+        }
+        100% {
+          transform: scale(1);
+          opacity: 1;
+        }
+      }
+
+      @media (max-width: 1200px) {
+        .game-container {
+          flex-direction: column;
+          align-items: center;
+        }
+
+        .side-panel {
+          width: 100%;
+          max-width: 600px;
+        }
+      }
+
+      @media (max-width: 768px) {
+        body {
+          padding: 1rem 0.5rem;
+        }
+
+        .card-wrapper {
+          padding: 0.5rem;
+        }
+
+        button {
+          padding: 0.6rem 1.5rem;
+          font-size: 1rem;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Bingo do André</h1>
+
+    <!-- Landing Screen -->
+    <div class="screen active" id="landingScreen">
+      <div class="landing-container">
+        <div class="create-game-section">
+          <h2>Create New Game</h2>
+          <input
+            type="text"
+            id="newGameName"
+            class="game-input"
+            placeholder="Enter game name..."
+          />
+          <button class="btn-success" id="createGameBtn" style="width: 100%">
+            Create Game
+          </button>
+        </div>
+
+        <div class="join-game-section">
+          <h2>Join Existing Game</h2>
+          <div class="game-list" id="gameList">
+            <p style="text-align: center; color: #7f8c8d">Loading games...</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Game Screen -->
+    <div class="screen" id="gameScreen">
+      <div class="game-container">
+        <div class="game-main">
+          <div class="card-wrapper">
+            <div class="grid" id="bingoGrid"></div>
+          </div>
+
+          <div class="buttons">
+            <button id="clearBtn">Clear</button>
+            <button id="newSessionBtn">New Session</button>
+            <button id="leaveGameBtn">Leave Game</button>
+          </div>
+        </div>
+
+        <div class="side-panel">
+          <h3>Players</h3>
+          <ul class="players-list" id="playersList"></ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- Username Modal -->
+    <div class="modal" id="usernameModal">
+      <div class="modal-content">
+        <h3>Enter Your Name</h3>
+        <input
+          type="text"
+          id="usernameInput"
+          class="game-input"
+          placeholder="Your name..."
+        />
+        <button class="btn-primary" id="submitUsername" style="width: 100%">
+          Join Game
+        </button>
+      </div>
+    </div>
+
+    <!-- Victory Overlay -->
+    <canvas id="confettiCanvas"></canvas>
+    <div class="victory-overlay" id="victoryOverlay">
+      <div class="victory-message">
+        <h2>🎉 BINGO! 🎉</h2>
+        <p>Parabéns! Você completou o cartão!</p>
+      </div>
+    </div>
+
+    <script src="https://www.unpkg.com/@instantdb/core@0.12.6/dist/standalone/index.umd.cjs"></script>
+    <script>
+      console.log("Script loaded!");
+
+      const { init, id, tx } = instant;
+      const APP_ID = "f27090f5-7ca9-4acc-a74e-cad07d031c2b";
+      const db = init({ appId: APP_ID });
+
+      console.log("InstantDB initialized:", db);
+
+      // Configuration
+      const ROWS = 3;
+      const COLS = 8;
+      const FILLED_PER_ROW = 5;
+      const PLACEHOLDER_CONTENT = [
+        "Só falta QA",
+        "É preciso cuidado com os edge cases!!!",
+        "É preciso testar",
+        "Tudo direitinho",
+        "Pendo",
+        "Tenho que ir comer",
+        "Depois do almoço",
+        "Não posso, tenho treino/ginásio",
+        "Já fui treinar às 6h30",
+        "Já trabalhei na Farfetch",
+        "Na Farfetch é que isso era bem feito",
+        "A minha namorada trabalha na Farfetch",
+        "Tenho um amigo ",
+        "Dynamic forms estão impecáveis",
+        "Se precisares conheço um gajo",
+        "Isso tem que se pedir a X",
+        "Restaurante / bar / viagem a que fui é incrível, tens que experimentar",
+        "Na Maia tens um lugar melhor",
+        "A minha família tem não sei o quê",
+        "Foi o meu avô que construiu a Maia",
+        "Estou à espera que alguém faça Y",
+        "Estive a fazer os testes de integração",
+        "Então, não consegues arranjar uma horinha por dia para treinar?",
+        "Quando é que vêem para o Padle?",
+        "Estou a fazer",
+        "Não se querem juntar",
+        "Vou olhar para isso",
+        "Não estou em casa / no pc",
+        "Estive a fazer review",
+        "Estou aqui à volta do bug",
+        "Fiz um fix para isso",
+        "Eu já testei",
+        "Já mando isso deixa só testar as changes em integ",
+        "Está testado. Podemos mover para staging para o verdadeiro teste",
+        "Vou só dar update",
+        "Tá feito, falta só fazer X",
+        "Estamos a precisar de QA's",
+        "Detetei aqui um bug",
+        "Cuidado a testar, foi aí que apanhei os bugs",
+      ];
+
+      const PASTEL_COLORS = [
+        "#FFB3BA", // pastel pink
+        "#BAFFC9", // pastel mint
+        "#BAE1FF", // pastel blue
+        "#FFFFBA", // pastel yellow
+        "#E0BBE4", // pastel lavender
+        "#FFDAB9", // pastel peach
+        "#D4A5A5", // pastel mauve
+        "#C7CEEA", // pastel periwinkle
+        "#B5EAD7", // pastel mint green
+        "#FFE5B4", // pastel apricot
+        "#C5E3F6", // pastel sky blue
+        "#E8DCC3", // pastel sage
+      ];
+
+      // State
+      let currentGameId = null;
+      let currentPlayerId = null;
+      let currentUsername = null;
+      let cardData = [];
+      let completedRows = new Set();
+      let audioContext = null;
+      let sessionEmptyColor = null;
+      let hasPlayedLineSound = false;
+
+      // DOM Elements
+      const landingScreen = document.getElementById("landingScreen");
+      const gameScreen = document.getElementById("gameScreen");
+      const usernameModal = document.getElementById("usernameModal");
+      const grid = document.getElementById("bingoGrid");
+      const clearBtn = document.getElementById("clearBtn");
+      const newSessionBtn = document.getElementById("newSessionBtn");
+      const leaveGameBtn = document.getElementById("leaveGameBtn");
+      const victoryOverlay = document.getElementById("victoryOverlay");
+      const confettiCanvas = document.getElementById("confettiCanvas");
+      const ctx = confettiCanvas.getContext("2d");
+      const gameList = document.getElementById("gameList");
+      const createGameBtn = document.getElementById("createGameBtn");
+      const newGameName = document.getElementById("newGameName");
+      const usernameInput = document.getElementById("usernameInput");
+      const submitUsername = document.getElementById("submitUsername");
+      const playersList = document.getElementById("playersList");
+
+      console.log("DOM elements:", { createGameBtn, newGameName, gameList });
+
+      // Initialize audio context on first user interaction
+      function initAudioContext() {
+        if (!audioContext) {
+          audioContext = new (window.AudioContext ||
+            window.webkitAudioContext)();
+        }
+      }
+
+      // Utility: Generate unique ID
+      function generateId() {
+        return Date.now().toString(36) + Math.random().toString(36).substr(2);
+      }
+
+      // Utility: Shuffle array (Fisher-Yates)
+      function shuffle(array) {
+        const arr = [...array];
+        for (let i = arr.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [arr[i], arr[j]] = [arr[j], arr[i]];
+        }
+        return arr;
+      }
+
+      // Generate random positions for filled cells in a row
+      function getRandomFilledPositions() {
+        const positions = shuffle([...Array(COLS).keys()]);
+        return positions.slice(0, FILLED_PER_ROW).sort((a, b) => a - b);
+      }
+
+      // Generate card data
+      function generateCard() {
+        const shuffledContent = shuffle(PLACEHOLDER_CONTENT);
+        let contentIndex = 0;
+        const newCardData = [];
+
+        // Select one color for all empty cells in this session
+        sessionEmptyColor =
+          PASTEL_COLORS[Math.floor(Math.random() * PASTEL_COLORS.length)];
+
+        for (let row = 0; row < ROWS; row++) {
+          const filledPositions = new Set(getRandomFilledPositions());
+          const rowData = [];
+
+          for (let col = 0; col < COLS; col++) {
+            if (filledPositions.has(col)) {
+              rowData.push({
+                type: "filled",
+                content: shuffledContent[contentIndex++],
+                selected: false,
+              });
+            } else {
+              rowData.push({
+                type: "empty",
+                color: sessionEmptyColor,
+              });
+            }
+          }
+
+          newCardData.push(rowData);
+        }
+
+        return newCardData;
+      }
+
+      // Subscribe to games list
+      db.subscribeQuery({ games: { players: {} } }, (resp) => {
+        if (resp.error) {
+          console.error("Error loading games:", resp.error);
+          return;
+        }
+
+        const games = resp.data.games || [];
+        renderGamesList(games);
+      });
+
+      // Render games list
+      function renderGamesList(games) {
+        if (games.length === 0) {
+          gameList.innerHTML =
+            '<p style="text-align: center; color: #7f8c8d">No games available. Create one!</p>';
+          return;
+        }
+
+        gameList.innerHTML = games
+          .map(
+            (game) => `
+          <div class="game-item" onclick="selectGame('${game.id}')">
+            <div class="game-info">
+              <div class="game-name">${game.name}</div>
+              <div class="game-players">${game.players.length} player(s)</div>
+            </div>
+            <button class="btn-primary" style="padding: 0.5rem 1rem; font-size: 0.9rem;">Join</button>
+          </div>
+        `
+          )
+          .join("");
+      }
+
+      // Create new game
+      createGameBtn.addEventListener("click", async () => {
+        try {
+          const gameName = newGameName.value.trim();
+          if (!gameName) {
+            alert("Please enter a game name");
+            return;
+          }
+
+          console.log("Creating game:", gameName);
+          initAudioContext();
+          const gameId = generateId();
+
+          // Generate shared card for all players
+          const sharedCard = generateCard();
+
+          console.log("Transacting to database...");
+          await db.transact(
+            db.tx.games[gameId].update({
+              name: gameName,
+              createdAt: Date.now(),
+              cardData: sharedCard,
+              emptyColor: sessionEmptyColor,
+            })
+          );
+
+          console.log("Game created successfully!");
+          newGameName.value = "";
+          selectGame(gameId);
+        } catch (error) {
+          console.error("Error creating game:", error);
+          alert("Error creating game: " + error.message);
+        }
+      });
+
+      // Select game to join
+      window.selectGame = function (gameId) {
+        currentGameId = gameId;
+        usernameModal.classList.add("show");
+      };
+
+      // Submit username and join game
+      submitUsername.addEventListener("click", async () => {
+        const username = usernameInput.value.trim();
+        if (!username) {
+          alert("Please enter your name");
+          return;
+        }
+
+        initAudioContext();
+        currentUsername = username;
+        currentPlayerId = generateId();
+
+        await db.transact(
+          db.tx.players[currentPlayerId].update({
+            gameId: currentGameId,
+            username: username,
+            selectedCells: [],
+            completedLines: 0,
+            hasCompletedCard: false,
+            joinedAt: Date.now(),
+          })
+        );
+
+        usernameInput.value = "";
+        usernameModal.classList.remove("show");
+        showGameScreen();
+      });
+
+      // Show game screen
+      function showGameScreen() {
+        landingScreen.classList.remove("active");
+        gameScreen.classList.add("active");
+
+        // Subscribe to current game and its players
+        db.subscribeQuery(
+          {
+            games: {
+              $: {
+                where: { id: currentGameId },
+              },
+              players: {},
+            },
+            players: {
+              $: {
+                where: { gameId: currentGameId },
+              },
+            },
+          },
+          (resp) => {
+            if (resp.error) {
+              console.error("Error loading game:", resp.error);
+              return;
+            }
+
+            const game = resp.data.games?.[0];
+            const players = resp.data.players || [];
+
+            if (game) {
+              // Use the shared card data from the game
+              cardData = game.cardData;
+              sessionEmptyColor = game.emptyColor;
+
+              // Load current player's selected cells
+              const currentPlayer = players.find(
+                (p) => p.id === currentPlayerId
+              );
+              if (currentPlayer && currentPlayer.selectedCells) {
+                // Apply selected cells to card data
+                currentPlayer.selectedCells.forEach((cellIndex) => {
+                  const row = Math.floor(cellIndex / COLS);
+                  const col = cellIndex % COLS;
+                  if (
+                    cardData[row] &&
+                    cardData[row][col] &&
+                    cardData[row][col].type === "filled"
+                  ) {
+                    cardData[row][col].selected = true;
+                  }
+                });
+              }
+
+              renderCard();
+            }
+
+            renderPlayersList(players);
+          }
+        );
+      }
+
+      // Render card
+      function renderCard() {
+        grid.innerHTML = "";
+
+        cardData.forEach((row, rowIndex) => {
+          row.forEach((cell, colIndex) => {
+            const cellDiv = document.createElement("div");
+            cellDiv.className = `cell ${cell.type}`;
+
+            if (cell.type === "filled") {
+              cellDiv.textContent = cell.content;
+              if (cell.selected) {
+                cellDiv.classList.add("selected");
+              }
+              cellDiv.addEventListener("click", () =>
+                handleCellClick(rowIndex, colIndex)
+              );
+            } else {
+              cellDiv.style.setProperty("--cell-color", cell.color);
+            }
+
+            grid.appendChild(cellDiv);
+          });
+        });
+      }
+
+      // Handle cell click
+      async function handleCellClick(row, col) {
+        const cell = cardData[row][col];
+        if (cell.type !== "filled") return;
+
+        initAudioContext();
+        cell.selected = !cell.selected;
+        renderCard();
+
+        // Calculate selected cells and update database
+        const selectedCells = [];
+        cardData.forEach((row, rowIndex) => {
+          row.forEach((cell, colIndex) => {
+            if (cell.type === "filled" && cell.selected) {
+              selectedCells.push(rowIndex * COLS + colIndex);
+            }
+          });
+        });
+
+        const { completedLines, hasCompletedCard } = checkCompletions();
+
+        await db.transact(
+          db.tx.players[currentPlayerId].update({
+            selectedCells: selectedCells,
+            completedLines: completedLines,
+            hasCompletedCard: hasCompletedCard,
+          })
+        );
+      }
+
+      // Check for row and full completions
+      function checkCompletions() {
+        let newlyCompletedCount = 0;
+        let totalCompletedLines = 0;
+
+        // Check each row
+        cardData.forEach((row, rowIndex) => {
+          const filledCells = row.filter((cell) => cell.type === "filled");
+          const allSelected = filledCells.every((cell) => cell.selected);
+
+          if (allSelected && filledCells.length > 0) {
+            totalCompletedLines++;
+            if (!completedRows.has(rowIndex)) {
+              completedRows.add(rowIndex);
+              newlyCompletedCount++;
+            }
+          }
+        });
+
+        // Trigger celebration for newly completed rows
+        if (newlyCompletedCount > 0 && !hasPlayedLineSound) {
+          onRowComplete();
+        }
+
+        // Check if all cells are selected
+        const allFilledCells = cardData
+          .flat()
+          .filter((cell) => cell.type === "filled");
+        const allCellsSelected =
+          allFilledCells.length > 0 &&
+          allFilledCells.every((cell) => cell.selected);
+
+        if (allCellsSelected && completedRows.size === ROWS) {
+          onFullComplete();
+        }
+
+        return {
+          completedLines: totalCompletedLines,
+          hasCompletedCard: allCellsSelected && completedRows.size === ROWS,
+        };
+      }
+
+      // Render players list
+      function renderPlayersList(players) {
+        const totalCells = ROWS * FILLED_PER_ROW;
+
+        playersList.innerHTML = players
+          .sort((a, b) => b.selectedCells.length - a.selectedCells.length)
+          .map((player) => {
+            const progress = `${player.selectedCells.length}/${totalCells}`;
+            const bingoIcon = player.hasCompletedCard
+              ? '<span class="bingo-icon">🎉</span>'
+              : "";
+            const completedClass = player.hasCompletedCard ? "completed" : "";
+
+            return `
+            <li class="player-item ${completedClass}">
+              <span class="player-name">${player.username}</span>
+              <div class="player-stats">
+                <span class="player-progress">${progress}</span>
+                ${bingoIcon}
+              </div>
+            </li>
+          `;
+          })
+          .join("");
+      }
+
+      // Row completion handler
+      function onRowComplete() {
+        playRowCompleteSound();
+        launchConfetti(50);
+        hasPlayedLineSound = true;
+      }
+
+      // Full completion handler
+      function onFullComplete() {
+        playFullCompleteSound();
+        launchConfetti(200);
+        setTimeout(() => {
+          victoryOverlay.classList.add("show");
+        }, 500);
+      }
+
+      // Play row complete sound
+      function playRowCompleteSound() {
+        if (!audioContext) return;
+
+        const notes = [523.25, 659.25]; // C5, E5
+        const duration = 0.15;
+
+        notes.forEach((freq, index) => {
+          const oscillator = audioContext.createOscillator();
+          const gainNode = audioContext.createGain();
+
+          oscillator.connect(gainNode);
+          gainNode.connect(audioContext.destination);
+
+          oscillator.frequency.value = freq;
+          oscillator.type = "sine";
+
+          gainNode.gain.setValueAtTime(
+            0.3,
+            audioContext.currentTime + index * duration
+          );
+          gainNode.gain.exponentialRampToValueAtTime(
+            0.01,
+            audioContext.currentTime + index * duration + duration
+          );
+
+          oscillator.start(audioContext.currentTime + index * duration);
+          oscillator.stop(
+            audioContext.currentTime + index * duration + duration
+          );
+        });
+      }
+
+      // Play full complete sound
+      function playFullCompleteSound() {
+        if (!audioContext) return;
+
+        const notes = [523.25, 659.25, 783.99, 1046.5]; // C5, E5, G5, C6
+        const duration = 0.2;
+
+        notes.forEach((freq, index) => {
+          const oscillator = audioContext.createOscillator();
+          const gainNode = audioContext.createGain();
+
+          oscillator.connect(gainNode);
+          gainNode.connect(audioContext.destination);
+
+          oscillator.frequency.value = freq;
+          oscillator.type = "sine";
+
+          gainNode.gain.setValueAtTime(
+            0.3,
+            audioContext.currentTime + index * duration
+          );
+          gainNode.gain.exponentialRampToValueAtTime(
+            0.01,
+            audioContext.currentTime + index * duration + duration * 1.5
+          );
+
+          oscillator.start(audioContext.currentTime + index * duration);
+          oscillator.stop(
+            audioContext.currentTime + index * duration + duration * 1.5
+          );
+        });
+      }
+
+      // Confetti system
+      let confettiPieces = [];
+      let animationId = null;
+
+      function resizeCanvas() {
+        confettiCanvas.width = window.innerWidth;
+        confettiCanvas.height = window.innerHeight;
+      }
+
+      window.addEventListener("resize", resizeCanvas);
+      resizeCanvas();
+
+      class ConfettiPiece {
+        constructor() {
+          this.x = Math.random() * confettiCanvas.width;
+          this.y = -20;
+          this.w = Math.random() * 10 + 5;
+          this.h = Math.random() * 10 + 5;
+          this.vx = Math.random() * 4 - 2;
+          this.vy = Math.random() * 3 + 2;
+          this.rotation = Math.random() * 360;
+          this.rotationSpeed = Math.random() * 10 - 5;
+          this.color =
+            PASTEL_COLORS[Math.floor(Math.random() * PASTEL_COLORS.length)];
+          this.gravity = 0.1;
+        }
+
+        update() {
+          this.vy += this.gravity;
+          this.x += this.vx;
+          this.y += this.vy;
+          this.rotation += this.rotationSpeed;
+        }
+
+        draw() {
+          ctx.save();
+          ctx.translate(this.x, this.y);
+          ctx.rotate((this.rotation * Math.PI) / 180);
+          ctx.fillStyle = this.color;
+          ctx.fillRect(-this.w / 2, -this.h / 2, this.w, this.h);
+          ctx.restore();
+        }
+
+        isOffScreen() {
+          return this.y > confettiCanvas.height + 20;
+        }
+      }
+
+      function launchConfetti(count) {
+        for (let i = 0; i < count; i++) {
+          confettiPieces.push(new ConfettiPiece());
+        }
+
+        if (!animationId) {
+          animateConfetti();
+        }
+      }
+
+      function animateConfetti() {
+        ctx.clearRect(0, 0, confettiCanvas.width, confettiCanvas.height);
+
+        confettiPieces = confettiPieces.filter((piece) => !piece.isOffScreen());
+
+        confettiPieces.forEach((piece) => {
+          piece.update();
+          piece.draw();
+        });
+
+        if (confettiPieces.length > 0) {
+          animationId = requestAnimationFrame(animateConfetti);
+        } else {
+          animationId = null;
+        }
+      }
+
+      // Clear button handler
+      clearBtn.addEventListener("click", async () => {
+        initAudioContext();
+        completedRows.clear();
+        cardData.forEach((row) => {
+          row.forEach((cell) => {
+            if (cell.type === "filled") {
+              cell.selected = false;
+            }
+          });
+        });
+        renderCard();
+
+        await db.transact(
+          db.tx.players[currentPlayerId].update({
+            selectedCells: [],
+            completedLines: 0,
+            hasCompletedCard: false,
+          })
+        );
+      });
+
+      // New session button handler
+      newSessionBtn.addEventListener("click", async () => {
+        initAudioContext();
+        completedRows.clear();
+        hasPlayedLineSound = false;
+
+        // Generate new shared card for the game
+        cardData = generateCard();
+        sessionEmptyColor =
+          PASTEL_COLORS[Math.floor(Math.random() * PASTEL_COLORS.length)];
+
+        // Update the game with new card data
+        await db.transact(
+          db.tx.games[currentGameId].update({
+            cardData: cardData,
+            emptyColor: sessionEmptyColor,
+          })
+        );
+
+        // Reset all players in the game
+        const resp = await db.query({
+          players: {
+            $: {
+              where: { gameId: currentGameId },
+            },
+          },
+        });
+
+        const players = resp.data.players || [];
+        for (const player of players) {
+          await db.transact(
+            db.tx.players[player.id].update({
+              selectedCells: [],
+              completedLines: 0,
+              hasCompletedCard: false,
+            })
+          );
+        }
+
+        renderCard();
+        victoryOverlay.classList.remove("show");
+      });
+
+      // Leave game button handler
+      leaveGameBtn.addEventListener("click", async () => {
+        if (confirm("Are you sure you want to leave this game?")) {
+          await db.transact(db.tx.players[currentPlayerId].delete());
+
+          currentGameId = null;
+          currentPlayerId = null;
+          currentUsername = null;
+          cardData = [];
+          completedRows.clear();
+          hasPlayedLineSound = false;
+
+          gameScreen.classList.remove("active");
+          landingScreen.classList.add("active");
+          victoryOverlay.classList.remove("show");
+        }
+      });
+
+      // Close victory overlay on click
+      victoryOverlay.addEventListener("click", () => {
+        victoryOverlay.classList.remove("show");
+      });
+    </script>
+  </body>
+</html>
