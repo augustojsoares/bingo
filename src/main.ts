@@ -869,7 +869,8 @@ async function startNewSession() {
   console.log("Fetching all players...");
   // Get all players in the game using subscribeQuery with immediate unsubscribe
   const players = await new Promise<Player[]>((resolve, reject) => {
-    const unsubscribe = db.subscribeQuery(
+    let unsubscribeFn: (() => void) | null = null;
+    unsubscribeFn = db.subscribeQuery(
       {
         players: {
           $: {
@@ -882,7 +883,7 @@ async function startNewSession() {
           reject(resp.error);
         } else {
           const playersList = (resp.data?.players || []) as Player[];
-          unsubscribe();
+          if (unsubscribeFn) unsubscribeFn();
           resolve(playersList);
         }
       }
@@ -949,7 +950,8 @@ leaveGameBtn.addEventListener("click", async () => {
 
     // Check if there are any remaining players in the game
     const remainingPlayers = await new Promise<Player[]>((resolve, reject) => {
-      const unsubscribe = db.subscribeQuery(
+      let unsubscribeFn: (() => void) | null = null;
+      unsubscribeFn = db.subscribeQuery(
         {
           players: {
             $: {
@@ -962,7 +964,7 @@ leaveGameBtn.addEventListener("click", async () => {
             reject(resp.error);
           } else {
             const playersList = (resp.data?.players || []) as Player[];
-            unsubscribe();
+            if (unsubscribeFn) unsubscribeFn();
             resolve(playersList);
           }
         }
@@ -1007,7 +1009,8 @@ victoryLeaveGameBtn.addEventListener("click", async () => {
 
     // Check if there are any remaining players in the game
     const remainingPlayers = await new Promise<Player[]>((resolve, reject) => {
-      const unsubscribe = db.subscribeQuery(
+      let unsubscribeFn: (() => void) | null = null;
+      unsubscribeFn = db.subscribeQuery(
         {
           players: {
             $: {
@@ -1020,7 +1023,7 @@ victoryLeaveGameBtn.addEventListener("click", async () => {
             reject(resp.error);
           } else {
             const playersList = (resp.data?.players || []) as Player[];
-            unsubscribe();
+            if (unsubscribeFn) unsubscribeFn();
             resolve(playersList);
           }
         }
@@ -1052,7 +1055,8 @@ async function cleanupEmptyGames() {
       games: Game[];
       allPlayers: Player[];
     }>((resolve, reject) => {
-      const unsubscribe = db.subscribeQuery(
+      let unsubscribeFn: (() => void) | null = null;
+      unsubscribeFn = db.subscribeQuery(
         { games: {}, players: {} },
         (resp) => {
           if (resp.error) {
@@ -1060,7 +1064,7 @@ async function cleanupEmptyGames() {
           } else {
             const games = (resp.data?.games || []) as Game[];
             const allPlayers = (resp.data?.players || []) as Player[];
-            unsubscribe();
+            if (unsubscribeFn) unsubscribeFn();
             resolve({ games, allPlayers });
           }
         }
